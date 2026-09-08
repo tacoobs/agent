@@ -1,19 +1,20 @@
 #!/bin/bash
+# -*- coding: utf-8 -*-
 # =============================================================================
 # taco - Taco Obs Server Health Check Agent
 # https://github.com/tacoobs/agent
 #
-# Coleta metricas do servidor e envia para webhook.
+# Coleta métricas do servidor e envia para webhook.
 # Detecta automaticamente o ambiente (Docker, PostgreSQL, Redis, Nginx, etc).
 #
 # Uso:
-#   taco install     Wizard interativo de configuracao
-#   taco config      Editar configuracao (valor individual ou wizard)
+#   taco install     Wizard interativo de configuração
+#   taco config      Editar configuração (valor individual ou wizard)
 #   taco run         Executa health check e envia report
 #   taco test        Envia report de teste para validar webhook
-#   taco status      Mostra configuracao atual e agendamento
-#   taco logs        Mostra ultimos logs de execucao
-#   taco uninstall   Remove configuracao, timer e logs
+#   taco status      Mostra configuração atual e agendamento
+#   taco logs        Mostra últimos logs de execução
+#   taco uninstall   Remove configuração, timer e logs
 #   taco help        Mostra esta ajuda
 # =============================================================================
 
@@ -53,7 +54,7 @@ need_root() {
 
 load_config() {
   if [ ! -f "$CONFIG_FILE" ]; then
-    err "Taco nao configurado. Execute: ${BOLD}sudo taco install${NC}"
+    err "Taco não configurado. Execute: ${BOLD}sudo taco install${NC}"
     exit 1
   fi
   source "$CONFIG_FILE"
@@ -117,7 +118,7 @@ cmd_install() {
   fi
 
   caps=$(echo "$caps" | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
-  echo -e "  ${GREEN}Detectado:${NC} ${caps:-nenhum servico especifico}"
+  echo -e "  ${GREEN}Detectado:${NC} ${caps:-nenhum serviço específico}"
   echo ""
 
   # Servidor
@@ -130,19 +131,19 @@ cmd_install() {
   bold "  -- Webhook --"
   ask "URL do webhook (N8N, Zapier, etc)" "" "WEBHOOK_URL"
   while [ -z "$WEBHOOK_URL" ]; do
-    warn "  Webhook URL e obrigatorio."
+    warn "  Webhook URL é obrigatório."
     ask "URL do webhook" "" "WEBHOOK_URL"
   done
   echo ""
 
   # Thresholds
   bold "  -- Thresholds de alerta --"
-  echo -e "  ${DIM}(pressione Enter para manter o padrao)${NC}"
+  echo -e "  ${DIM}(pressione Enter para manter o padrão)${NC}"
   echo ""
   echo -e "  ${BOLD}Disco:${NC}"
   ask_threshold "Warning %" "70" "DISK_WARN"
   ask_threshold "Critical %" "85" "DISK_CRIT"
-  echo -e "  ${BOLD}Memoria:${NC}"
+  echo -e "  ${BOLD}Memória:${NC}"
   ask_threshold "Warning %" "80" "MEM_WARN"
   ask_threshold "Critical %" "95" "MEM_CRIT"
   echo -e "  ${BOLD}Load average (multiplicador de CPUs):${NC}"
@@ -261,7 +262,7 @@ EOF
   fi
 
   echo ""
-  ok "Instalacao completa!"
+  ok "Instalação completa!"
   echo -e "  ${DIM}Comandos: taco run | taco status | taco logs | taco test${NC}"
   echo ""
 }
@@ -291,7 +292,7 @@ cmd_config() {
 
     param=$(echo "$param" | tr '[:lower:]' '[:upper:]')
     if ! grep -q "^${param}=" "$CONFIG_FILE"; then
-      err "Chave '${param}' nao encontrada."
+      err "Chave '${param}' não encontrada."
       return 1
     fi
 
@@ -364,7 +365,7 @@ cmd_config() {
   ask "Novo valor para ${sel_key}" "$sel_val" "new_val"
 
   if [ "$new_val" = "$sel_val" ]; then
-    info "Nenhuma alteracao."
+    info "Nenhuma alteração."
     return
   fi
 
@@ -483,7 +484,7 @@ s = [line.split()[0] for line in sys.stdin if line.strip()]
 print(json.dumps(s))
 " || echo "[]")
     n_failed=$(python3 -c "import json; print(len(json.loads('''$failed_services''')))")
-    [ "$n_failed" -gt 0 ] && add_alert_inner "warning" "systemd" "$n_failed servico(s) com falha"
+    [ "$n_failed" -gt 0 ] && add_alert_inner "warning" "systemd" "$n_failed serviço(s) com falha"
   fi
 
   # -- DOCKER -----------------------------------------------------------------
@@ -498,7 +499,7 @@ print(json.dumps(c))
 ")
 
     down=$(docker ps -a --filter "status=exited" --filter "status=dead" --format '{{.Names}}' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
-    [ -n "$down" ] && add_alert_inner "critical" "docker" "Containers down: $down"
+    [ -n "$down" ] && add_alert_inner "warning" "docker" "Containers down: $down"
 
     stats=$(docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}' 2>/dev/null | python3 -c "
 import sys, json
@@ -728,16 +729,16 @@ cmd_status() {
     local next_run
     next_run=$(systemctl show taco.timer --property=NextElapseUSecRealtime --value 2>/dev/null || echo "?")
     echo -e "  ${BOLD}Timer:${NC}        ${GREEN}ativo${NC}"
-    echo -e "  Proximo run:  ${next_run}"
+    echo -e "  Próximo run:  ${next_run}"
   else
     echo -e "  ${BOLD}Timer:${NC}        ${RED}inativo${NC}"
   fi
 
-  # Ultimo log
+  # Último log
   if [ -f "$LOG_FILE" ]; then
     local last_log
     last_log=$(tail -1 "$LOG_FILE" 2>/dev/null || echo "nenhum")
-    echo -e "  Ultimo log:   ${DIM}${last_log}${NC}"
+    echo -e "  Último log:   ${DIM}${last_log}${NC}"
   fi
   echo ""
 }
@@ -782,7 +783,7 @@ cmd_uninstall() {
   rm -rf "$CONFIG_DIR" "$LOG_DIR"
 
   ok "Taco removido."
-  echo -e "  ${DIM}O binario /usr/local/bin/taco pode ser removido manualmente.${NC}"
+  echo -e "  ${DIM}O binário /usr/local/bin/taco pode ser removido manualmente.${NC}"
   echo ""
 }
 
@@ -794,14 +795,14 @@ cmd_help() {
   echo "  Uso: taco <comando>"
   echo ""
   echo "  Comandos:"
-  echo -e "    ${BOLD}install${NC}     Wizard interativo de configuracao"
-  echo -e "    ${BOLD}config${NC}      Editar configuracao"
+  echo -e "    ${BOLD}install${NC}     Wizard interativo de configuração"
+  echo -e "    ${BOLD}config${NC}      Editar configuração"
   echo -e "    ${BOLD}config set${NC}  Alterar valor direto (ex: taco config set DISK_WARN 80)"
   echo -e "    ${BOLD}run${NC}         Executa health check e envia report"
   echo -e "    ${BOLD}test${NC}        Envia report de teste para validar webhook"
-  echo -e "    ${BOLD}status${NC}      Mostra configuracao e agendamento"
-  echo -e "    ${BOLD}logs${NC}        Mostra ultimos logs de execucao"
-  echo -e "    ${BOLD}uninstall${NC}   Remove configuracao, timer e logs"
+  echo -e "    ${BOLD}status${NC}      Mostra configuração e agendamento"
+  echo -e "    ${BOLD}logs${NC}        Mostra últimos logs de execução"
+  echo -e "    ${BOLD}uninstall${NC}   Remove configuração, timer e logs"
   echo -e "    ${BOLD}help${NC}        Mostra esta ajuda"
   echo ""
 }
